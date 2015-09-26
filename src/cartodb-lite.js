@@ -16,16 +16,16 @@
 
     cdb.CARTOCSS_DEFAULT_VERSION = '2.1.1';
 
-    //root.cdb.config = {};
-    //root.cdb.core = {};
-    //root.cdb.image = {};
-    //root.cdb.geo = {};
-    //root.cdb.geo.ui = {};
-    //root.cdb.geo.geocoder = {};
-    //root.cdb.ui = {};
-    //root.cdb.ui.common = {};
-    //root.cdb.vis = {};
-    //root.cdb.decorators = {};
+    root.cdb.config = {};
+    root.cdb.core = {};
+    root.cdb.image = {};
+    root.cdb.geo = {};
+    root.cdb.geo.ui = {};
+    root.cdb.geo.geocoder = {};
+    root.cdb.ui = {};
+    root.cdb.ui.common = {};
+    root.cdb.vis = {};
+    root.cdb.decorators = {};
 
     /**
      * global variables
