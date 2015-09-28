@@ -1,6 +1,10 @@
 var Backbone = require('backbone')
 var _ = require('underscore')
 window._ = _
+var L = require('leaflet')
+window.L = L
+var $ = require('jquery')
+window.$ = $
 
 var cdb = cdb = {};
 

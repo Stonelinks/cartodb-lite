@@ -10,10 +10,10 @@
     "wax": "./vendor/wax.cartodb.js"
   },
   "browserify-shim": {
-    "jquery": "global:$",
-    "underscore": "global:_",
+    "jquery": "$",
+    "underscore": "_",
     "wax": "wax",
-    "leaflet": "global:L"
+    "leaflet": "L"
   },
   "author": {
     "name": "CartoDB",

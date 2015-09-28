@@ -251,7 +251,6 @@ module.exports = function (cdb) {
             var json = JSON.stringify(this.toJSON());
             var compressor = this._getCompressor(json);
             var endPoint = self.JSONPendPoint || self.endPoint;
-            debugger
             compressor(json, 3, function (encoded) {
                 params.push(encoded);
                 var loadingTime = cartodb.core.Profiler.metric('cartodb-js.layergroup.get.time').start();
