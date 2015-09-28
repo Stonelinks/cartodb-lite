@@ -1,18 +1,20 @@
-/**
- * global configuration
- */
+var Backbone = require('backbone')
 
-(function() {
+module.exports = function (cdb) {
+    /**
+     * global configuration
+     */
+
 
     Config = Backbone.Model.extend({
         VERSION: 2,
 
-        initialize: function() {
-          this.modules = new Backbone.Collection();
-          this.modules.bind('add', function(model) {
-            this.trigger('moduleLoaded');
-            this.trigger('moduleLoaded:' + model.get('name'));
-          }, this);
+        initialize: function () {
+            this.modules = new Backbone.Collection();
+            this.modules.bind('add', function (model) {
+                this.trigger('moduleLoaded');
+                this.trigger('moduleLoaded:' + model.get('name'));
+            }, this);
         },
 
         //error track
@@ -23,17 +25,17 @@
          * returns the base url to compose the final url
          * http://user.cartodb.com/
          */
-        getSqlApiBaseUrl: function() {
-          var url;
-          if (this.get('sql_api_template')) {
-            url = this.get("sql_api_template").replace('{user}', this.get('user_name'));
-          } else {
-            url = this.get('sql_api_protocol') + '://' +
-              this.get('user_name') + '.' +
-              this.get('sql_api_domain') + ':' +
-              this.get('sql_api_port');
-          }
-          return url;
+        getSqlApiBaseUrl: function () {
+            var url;
+            if (this.get('sql_api_template')) {
+                url = this.get("sql_api_template").replace('{user}', this.get('user_name'));
+            } else {
+                url = this.get('sql_api_protocol') + '://' +
+                    this.get('user_name') + '.' +
+                    this.get('sql_api_domain') + ':' +
+                    this.get('sql_api_port');
+            }
+            return url;
         },
 
         /**
@@ -41,9 +43,9 @@
          * allos to specify the version
          * http://user.cartodb.com/api/v1/sql
          */
-        getSqlApiUrl: function(version) {
-          version = version || 'v2';
-          return this.getSqlApiBaseUrl() + "/api/" + version + "/sql";
+        getSqlApiUrl: function (version) {
+            version = version || 'v2';
+            return this.getSqlApiBaseUrl() + "/api/" + version + "/sql";
         }
 
 
@@ -51,8 +53,8 @@
 
     cdb.config = new Config();
     cdb.config.set({
-      cartodb_attributions: "CartoDB <a href='http://cartodb.com/attributions' target='_blank'>attribution</a>",
-      cartodb_logo_link: "http://www.cartodb.com"
+        cartodb_attributions: "CartoDB <a href='http://cartodb.com/attributions' target='_blank'>attribution</a>",
+        cartodb_logo_link: "http://www.cartodb.com"
     });
 
-})();
+}

@@ -1,30 +1,32 @@
-/**
- * logging
- */
+var Backbone = require('backbone')
 
-(function() {
+module.exports = function (cdb) {
+    /**
+     * logging
+     */
 
-    // error management
+
+        // error management
     cdb.core.Error = Backbone.Model.extend({
         url: cdb.config.REPORT_ERROR_URL,
-        initialize: function() {
-            this.set({browser: JSON.stringify($.browser) });
+        initialize: function () {
+            this.set({browser: JSON.stringify($.browser)});
         }
     });
 
     cdb.core.ErrorList = Backbone.Collection.extend({
         model: cdb.core.Error,
-        enableTrack: function() {
-          var old_onerror = window.onerror;
-          window.onerror = function(msg, url, line) {
-              cdb.errors.create({
-                  msg: msg,
-                  url: url,
-                  line: line
-              });
-              if (old_onerror)
-                old_onerror.apply(window, arguments);
-          };
+        enableTrack: function () {
+            var old_onerror = window.onerror;
+            window.onerror = function (msg, url, line) {
+                cdb.errors.create({
+                    msg: msg,
+                    url: url,
+                    line: line
+                });
+                if (old_onerror)
+                    old_onerror.apply(window, arguments);
+            };
         }
     });
 
@@ -33,23 +35,26 @@
 
 
     // error tracking!
-    if(cdb.config.ERROR_TRACK_ENABLED) {
-      cdb.errors.enableTrack();
+    if (cdb.config.ERROR_TRACK_ENABLED) {
+        cdb.errors.enableTrack();
     }
 
 
     // logging
-    var _fake_console = function() {};
-    _fake_console.prototype.error = function(){};
-    _fake_console.prototype.log= function(){};
+    var _fake_console = function () {
+    };
+    _fake_console.prototype.error = function () {
+    };
+    _fake_console.prototype.log = function () {
+    };
 
     //IE7 love
-    if(typeof console !== "undefined") {
+    if (typeof console !== "undefined") {
         _console = console;
         try {
-          _console.log.apply(_console, ['cartodb.js ' + cartodb.VERSION])
-        } catch(e) {
-          _console = new _fake_console();
+            _console.log.apply(_console, ['cartodb.js ' + cartodb.VERSION])
+        } catch (e) {
+            _console = new _fake_console();
         }
     } else {
         _console = new _fake_console();
@@ -57,28 +62,29 @@
 
     cdb.core.Log = Backbone.Model.extend({
 
-        error: function() {
+        error: function () {
             _console.error.apply(_console, arguments);
-            if(cdb.config.ERROR_TRACK_ENABLED) {
-              cdb.errors.create({
-                  msg: Array.prototype.slice.call(arguments).join('')
-              });
+            if (cdb.config.ERROR_TRACK_ENABLED) {
+                cdb.errors.create({
+                    msg: Array.prototype.slice.call(arguments).join('')
+                });
             }
         },
 
-        log: function() {
+        log: function () {
             _console.log.apply(_console, arguments);
         },
 
-        info: function() {
+        info: function () {
             _console.log.apply(_console, arguments);
         },
 
-        debug: function() {
-          if (cdb.DEBUG) _console.log.apply(_console, arguments);
+        debug: function () {
+            if (cdb.DEBUG) _console.log.apply(_console, arguments);
         }
     });
 
-})();
 
-cdb.log = new cdb.core.Log({tag: 'cdb'});
+    cdb.log = new cdb.core.Log({tag: 'cdb'});
+
+}

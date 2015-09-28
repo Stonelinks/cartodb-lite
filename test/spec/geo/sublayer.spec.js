@@ -36,29 +36,29 @@ describe('Sublayers', function() {
   describe('SubLayerFactory', function() {
 
     it('should return a CartoDBSublayer', function() {
-      var sublayer = SubLayerFactory.createSublayer('', layerDefinition, 0);
+      var sublayer = cdb.geo.SubLayerFactory.createSublayer('', layerDefinition, 0);
       expect(sublayer instanceof CartoDBSubLayer).toBeTruthy();
 
-      var sublayer = SubLayerFactory.createSublayer('mapnik', layerDefinition, 0);
+      var sublayer = cdb.geo.SubLayerFactory.createSublayer('mapnik', layerDefinition, 0);
       expect(sublayer instanceof CartoDBSubLayer).toBeTruthy();
 
-      var sublayer = SubLayerFactory.createSublayer('cartodb', layerDefinition, 0);
+      var sublayer = cdb.geo.SubLayerFactory.createSublayer('cartodb', layerDefinition, 0);
       expect(sublayer instanceof CartoDBSubLayer).toBeTruthy();
     });
 
     it('should return an HttpSublayer', function() {
-      var sublayer = SubLayerFactory.createSublayer('http', layerDefinition, 0);
+      var sublayer = cdb.geo.SubLayerFactory.createSublayer('http', layerDefinition, 0);
       expect(sublayer instanceof HttpSubLayer).toBeTruthy();
     });
 
     it('should be case insensitive', function() {
-      var sublayer = SubLayerFactory.createSublayer('cARToDB', layerDefinition, 0);
+      var sublayer = cdb.geo.SubLayerFactory.createSublayer('cARToDB', layerDefinition, 0);
       expect(sublayer instanceof CartoDBSubLayer).toBeTruthy();
     });
 
     it('should throw an error if type is not supported', function() {
       expect(function() {
-        SubLayerFactory.createSublayer('unsupported type');
+          cdb.geo.SubLayerFactory.createSublayer('unsupported type');
       }).toThrow('Sublayer type not supported');
     })
   });

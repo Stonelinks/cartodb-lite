@@ -1,818 +1,828 @@
-cdb.geo.ui.MobileLayer = cdb.core.View.extend({
+module.exports = function (cdb) {
+    cdb.geo.ui.MobileLayer = cdb.core.View.extend({
 
-  events: {
-    'click h3':    "_toggle",
-    "dblclick":  "_stopPropagation"
-  },
+        events: {
+            'click h3': "_toggle",
+            "dblclick": "_stopPropagation"
+        },
 
-  tagName: "li",
+        tagName: "li",
 
-  className: "cartodb-mobile-layer has-toggle",
+        className: "cartodb-mobile-layer has-toggle",
 
-  template: cdb.core.Template.compile("<% if (show_title) { %><h3><%- layer_name %><% } %><a href='#' class='toggle<%- toggle_class %>'></a></h3>"),
+        template: cdb.core.Template.compile("<% if (show_title) { %><h3><%- layer_name %><% } %><a href='#' class='toggle<%- toggle_class %>'></a></h3>"),
 
-  /**
-   *  Stop event propagation
-   */
-  _stopPropagation: function(ev) {
-    ev.stopPropagation();
-  },
+        /**
+         *  Stop event propagation
+         */
+        _stopPropagation: function (ev) {
+            ev.stopPropagation();
+        },
 
-  initialize: function() {
+        initialize: function () {
 
-    _.defaults(this.options, this.default_options);
+            _.defaults(this.options, this.default_options);
 
-    this.model.bind("change:visible", this._onChangeVisible, this);
+            this.model.bind("change:visible", this._onChangeVisible, this);
 
-  },
+        },
 
-  _onChangeVisible: function() {
+        _onChangeVisible: function () {
 
-    this.$el.find(".legend")[ this.model.get("visible") ? "fadeIn":"fadeOut"](150);
-    this.$el[ this.model.get("visible") ? "removeClass":"addClass"]("hidden");
+            this.$el.find(".legend")[this.model.get("visible") ? "fadeIn" : "fadeOut"](150);
+            this.$el[this.model.get("visible") ? "removeClass" : "addClass"]("hidden");
 
-    this.trigger("change_visibility", this);
+            this.trigger("change_visibility", this);
 
-  },
+        },
 
-  _toggle: function(e) {
+        _toggle: function (e) {
 
-    e.preventDefault();
-    e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-    if (this.options.hide_toggle) return;
+            if (this.options.hide_toggle) return;
 
-    this.model.set("visible", !this.model.get("visible"))
+            this.model.set("visible", !this.model.get("visible"))
 
-  },
+        },
 
-  _renderLegend: function() {
+        _renderLegend: function () {
 
-    if (!this.options.show_legends) return;
+            if (!this.options.show_legends) return;
 
-    if (this.model.get("legend") && (this.model.get("legend").type == "none" || !this.model.get("legend").type)) return;
-    if (this.model.get("legend") && this.model.get("legend").items && this.model.get("legend").items.length == 0) return;
+            if (this.model.get("legend") && (this.model.get("legend").type == "none" || !this.model.get("legend").type)) return;
+            if (this.model.get("legend") && this.model.get("legend").items && this.model.get("legend").items.length == 0) return;
 
-    this.$el.addClass("has-legend");
+            this.$el.addClass("has-legend");
 
-    var legend = new cdb.geo.ui.Legend(this.model.get("legend"));
+            var legend = new cdb.geo.ui.Legend(this.model.get("legend"));
 
-    legend.undelegateEvents();
+            legend.undelegateEvents();
 
-    this.$el.append(legend.render().$el);
+            this.$el.append(legend.render().$el);
 
-  },
+        },
 
-  _truncate: function(input, length) {
-    return input.substr(0, length-1) + (input.length > length ? '&hellip;' : '');
-  },
+        _truncate: function (input, length) {
+            return input.substr(0, length - 1) + (input.length > length ? '&hellip;' : '');
+        },
 
-  render: function() {
+        render: function () {
 
-    var layer_name = this.model.get("layer_name");
+            var layer_name = this.model.get("layer_name");
 
-    layer_name = layer_name ? this._truncate(layer_name, 23) : "untitled";
+            layer_name = layer_name ? this._truncate(layer_name, 23) : "untitled";
 
-    var attributes = _.extend(
-      this.model.attributes,
-      {
-        layer_name:   this.options.show_title ? layer_name : "",
-        toggle_class: this.options.hide_toggle ? " hide" : ""
-      }
-    );
+            var attributes = _.extend(
+                this.model.attributes,
+                {
+                    layer_name: this.options.show_title ? layer_name : "",
+                    toggle_class: this.options.hide_toggle ? " hide" : ""
+                }
+            );
 
-    this.$el.html(this.template(_.extend(attributes, { show_title: this.options.show_title } )));
+            this.$el.html(this.template(_.extend(attributes, {show_title: this.options.show_title})));
 
 
-    if (this.options.hide_toggle)   this.$el.removeClass("has-toggle");
-    if (!this.model.get("visible")) this.$el.addClass("hidden");
-    if (this.model.get("legend"))   this._renderLegend();
+            if (this.options.hide_toggle)   this.$el.removeClass("has-toggle");
+            if (!this.model.get("visible")) this.$el.addClass("hidden");
+            if (this.model.get("legend"))   this._renderLegend();
 
-    this._onChangeVisible();
+            this._onChangeVisible();
 
-    return this;
-  }
-
-});
-
-cdb.geo.ui.Mobile = cdb.core.View.extend({
-
-  className: "cartodb-mobile",
-
-  events: {
-    "click .cartodb-attribution-button": "_onAttributionClick",
-    "click .toggle":                     "_toggle",
-    "click .fullscreen":                 "_toggleFullScreen",
-    "click .backdrop":                   "_onBackdropClick",
-    "dblclick .aside":                   "_stopPropagation",
-    "dragstart .aside":                  "_checkOrigin",
-    "mousedown .aside":                  "_checkOrigin",
-    "touchstart .aside":                 "_checkOrigin",
-    "MSPointerDown .aside":              "_checkOrigin",
-  },
-
-  initialize: function() {
-
-    _.bindAll(this, "_toggle", "_reInitScrollpane");
-
-    _.defaults(this.options, this.default_options);
-
-    this.hasLayerSelector = false;
-    this.layersLoading    = 0;
-
-    this.slides_data   = this.options.slides_data;
-    this.visualization = this.options.visualization;
-
-    if (this.visualization) {
-      this.slides      = this.visualization.slides;
-    }
-
-    this.mobileEnabled = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    this.visibility_options = this.options.visibility_options || {};
-
-    this.mapView  = this.options.mapView;
-    this.map      = this.mapView.map;
-
-    this.template = this.options.template ? this.options.template : cdb.templates.getTemplate('geo/zoom');
-
-    this._selectOverlays();
-
-    this._setupModel();
-
-    window.addEventListener('orientationchange', _.bind(this.doOnOrientationChange, this));
-
-    this._addWheelEvent();
-
-  },
-
-  loadingTiles: function() {
-    if (this.loader) {
-      this.loader.show()
-    }
-
-    if (this.layersLoading === 0) {
-      this.trigger('loading');
-    }
-    this.layersLoading++;
-  },
-
-  loadTiles: function() {
-    if (this.loader) {
-      this.loader.hide();
-    }
-    this.layersLoading--;
-    // check less than 0 because loading event sometimes is
-    // thrown before visualization creation
-    if(this.layersLoading <= 0) {
-      this.layersLoading = 0;
-      this.trigger('load');
-    }
-  },
-
-  _selectOverlays: function() {
-
-    if (this.slides && this.slides_data) { // if there are slides…
-
-      var state = this.slides.state();
-
-      if (state == 0) this.overlays = this.options.overlays; // first slide == master vis
-      else {
-        this.overlays = this.slides_data[state - 1].overlays;
-      }
-    } else { // otherwise we load the regular overlays
-      this.overlays = this.options.overlays;
-    }
-
-  },
-
-  _addWheelEvent: function() {
-
-      var self    = this;
-      var mapView = this.options.mapView;
-
-      $(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', function() {
-
-        if ( !document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
-          mapView.options.map.set("scrollwheel", false);
+            return this;
         }
 
-        mapView.invalidateSize();
-
-      });
-
-  },
-
-  _setupModel: function() {
-
-    this.model = new Backbone.Model({
-      open: false,
-      layer_count: 0
     });
 
-    this.model.on("change:open", this._onChangeOpen, this);
-    this.model.on("change:layer_count", this._onChangeLayerCount, this);
+    cdb.geo.ui.Mobile = cdb.core.View.extend({
 
-  },
+        className: "cartodb-mobile",
 
-  /**
-   *  Check event origin
-   */
-  _checkOrigin: function(ev) {
-    // If the mouse down come from jspVerticalBar
-    // dont stop the propagation, but if the event
-    // is a touchstart, stop the propagation
-    var come_from_scroll = (($(ev.target).closest(".jspVerticalBar").length > 0) && (ev.type != "touchstart"));
+        events: {
+            "click .cartodb-attribution-button": "_onAttributionClick",
+            "click .toggle": "_toggle",
+            "click .fullscreen": "_toggleFullScreen",
+            "click .backdrop": "_onBackdropClick",
+            "dblclick .aside": "_stopPropagation",
+            "dragstart .aside": "_checkOrigin",
+            "mousedown .aside": "_checkOrigin",
+            "touchstart .aside": "_checkOrigin",
+            "MSPointerDown .aside": "_checkOrigin",
+        },
 
-    if (!come_from_scroll) {
-      ev.stopPropagation();
-    }
-  },
+        initialize: function () {
 
-  _stopPropagation: function(ev) {
-    ev.stopPropagation();
-  },
+            _.bindAll(this, "_toggle", "_reInitScrollpane");
 
-  _onBackdropClick: function(e) {
+            _.defaults(this.options, this.default_options);
 
-    e.preventDefault();
-    e.stopPropagation();
+            this.hasLayerSelector = false;
+            this.layersLoading = 0;
 
-    this.$el.find(".backdrop").fadeOut(250);
-    this.$el.find(".cartodb-attribution").fadeOut(250);
+            this.slides_data = this.options.slides_data;
+            this.visualization = this.options.visualization;
 
-  },
+            if (this.visualization) {
+                this.slides = this.visualization.slides;
+            }
 
-  _onAttributionClick: function(e) {
+            this.mobileEnabled = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    e.preventDefault();
-    e.stopPropagation();
+            this.visibility_options = this.options.visibility_options || {};
 
-    this.$el.find(".backdrop").fadeIn(250);
-    this.$el.find(".cartodb-attribution").fadeIn(250);
+            this.mapView = this.options.mapView;
+            this.map = this.mapView.map;
 
-  },
+            this.template = this.options.template ? this.options.template : cdb.templates.getTemplate('geo/zoom');
 
-  _toggle: function(e) {
+            this._selectOverlays();
 
-    e.preventDefault();
-    e.stopPropagation();
+            this._setupModel();
 
-    this.model.set("open", !this.model.get("open"));
+            window.addEventListener('orientationchange', _.bind(this.doOnOrientationChange, this));
 
-  },
+            this._addWheelEvent();
 
-  _toggleFullScreen: function(ev) {
+        },
 
-    ev.stopPropagation();
-    ev.preventDefault();
+        loadingTiles: function () {
+            if (this.loader) {
+                this.loader.show()
+            }
 
-    var doc   = window.document;
-    var docEl = $("#map > div")[0];
+            if (this.layersLoading === 0) {
+                this.trigger('loading');
+            }
+            this.layersLoading++;
+        },
 
-    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen;
-    var cancelFullScreen  = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen;
+        loadTiles: function () {
+            if (this.loader) {
+                this.loader.hide();
+            }
+            this.layersLoading--;
+            // check less than 0 because loading event sometimes is
+            // thrown before visualization creation
+            if (this.layersLoading <= 0) {
+                this.layersLoading = 0;
+                this.trigger('load');
+            }
+        },
 
-    var mapView = this.options.mapView;
+        _selectOverlays: function () {
 
-    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement) {
+            if (this.slides && this.slides_data) { // if there are slides…
 
-      requestFullScreen.call(docEl);
+                var state = this.slides.state();
 
-      if (mapView) {
+                if (state == 0) this.overlays = this.options.overlays; // first slide == master vis
+                else {
+                    this.overlays = this.slides_data[state - 1].overlays;
+                }
+            } else { // otherwise we load the regular overlays
+                this.overlays = this.options.overlays;
+            }
 
-        mapView.options.map.set("scrollwheel", true);
+        },
 
-      }
+        _addWheelEvent: function () {
 
-    } else {
+            var self = this;
+            var mapView = this.options.mapView;
 
-      cancelFullScreen.call(doc);
+            $(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', function () {
 
-    }
-  },
+                if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                    mapView.options.map.set("scrollwheel", false);
+                }
 
-  _open: function() {
+                mapView.invalidateSize();
 
-    var right = this.$el.find(".aside").width();
+            });
 
-    this.$el.find(".cartodb-header").animate({ right: right }, 200)
-    this.$el.find(".aside").animate({ right: 0 }, 200)
-    this.$el.find(".cartodb-attribution-button").animate({ right: right + parseInt(this.$el.find(".cartodb-attribution-button").css("right")) }, 200)
-    this.$el.find(".cartodb-attribution").animate({ right: right + parseInt(this.$el.find(".cartodb-attribution-button").css("right")) }, 200)
-    this._initScrollPane();
+        },
 
-  },
+        _setupModel: function () {
 
-  _close: function() {
+            this.model = new Backbone.Model({
+                open: false,
+                layer_count: 0
+            });
 
-    this.$el.find(".cartodb-header").animate({ right: 0 }, 200)
-    this.$el.find(".aside").animate({ right: - this.$el.find(".aside").width() }, 200)
-    this.$el.find(".cartodb-attribution-button").animate({ right: 20 }, 200)
-    this.$el.find(".cartodb-attribution").animate({ right: 20 }, 200)
+            this.model.on("change:open", this._onChangeOpen, this);
+            this.model.on("change:layer_count", this._onChangeLayerCount, this);
 
-  },
+        },
 
-  default_options: {
-    timeout: 0,
-    msg: ''
-  },
+        /**
+         *  Check event origin
+         */
+        _checkOrigin: function (ev) {
+            // If the mouse down come from jspVerticalBar
+            // dont stop the propagation, but if the event
+            // is a touchstart, stop the propagation
+            var come_from_scroll = (($(ev.target).closest(".jspVerticalBar").length > 0) && (ev.type != "touchstart"));
 
-  _stopPropagation: function(ev) {
-    ev.stopPropagation();
-  },
+            if (!come_from_scroll) {
+                ev.stopPropagation();
+            }
+        },
 
-  doOnOrientationChange: function() {
+        _stopPropagation: function (ev) {
+            ev.stopPropagation();
+        },
 
-    switch(window.orientation)
-    {
-      case -90:
-      case 90: this.recalc("landscape");
-        break;
-      default: this.recalc("portrait");
-        break;
-    }
-  },
+        _onBackdropClick: function (e) {
 
-  recalc: function(orientation) {
+            e.preventDefault();
+            e.stopPropagation();
 
-    var height = $(".legends > div.cartodb-legend-stack").height();
+            this.$el.find(".backdrop").fadeOut(250);
+            this.$el.find(".cartodb-attribution").fadeOut(250);
 
-    if (this.$el.hasClass("open") && height < 100 && !this.$el.hasClass("torque")) {
+        },
 
-      this.$el.css("height", height);
-      this.$el.find(".top-shadow").hide();
-      this.$el.find(".bottom-shadow").hide();
+        _onAttributionClick: function (e) {
 
-    } else if (this.$el.hasClass("open") && height < 100 && this.$el.hasClass("legends") && this.$el.hasClass("torque")) {
+            e.preventDefault();
+            e.stopPropagation();
 
-      this.$el.css("height", height + $(".legends > div.torque").height() );
-      this.$el.find(".top-shadow").hide();
-      this.$el.find(".bottom-shadow").hide();
+            this.$el.find(".backdrop").fadeIn(250);
+            this.$el.find(".cartodb-attribution").fadeIn(250);
 
-    }
+        },
 
-  },
+        _toggle: function (e) {
 
-  _onChangeLayerCount: function() {
+            e.preventDefault();
+            e.stopPropagation();
 
-    var layer_count = this.model.get("layer_count");
-    var msg = layer_count + " layer" + (layer_count != 1 ? "s" : "");
-    this.$el.find(".aside .layer-container > h3").html(msg);
+            this.model.set("open", !this.model.get("open"));
 
-  },
+        },
 
-  _onChangeOpen: function() {
-    this.model.get("open") ? this._open() : this._close();
-  },
+        _toggleFullScreen: function (ev) {
 
-  _createLayer: function(_class, opts) {
-    return new cdb.geo.ui[_class](opts);
-  },
+            ev.stopPropagation();
+            ev.preventDefault();
 
-  _getLayers: function() {
+            var doc = window.document;
+            var docEl = $("#map > div")[0];
 
-    this.layers = [];
+            var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen;
+            var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen;
 
-    // we add the layers to the array depending on the method used
-    // to sent us the layers
-    if (this.options.layerView) {
-      this._getLayersFromLayerView();
-    } else {
-      _.each(this.map.layers.models, this._getLayer, this);
-    }
+            var mapView = this.options.mapView;
 
-  },
+            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement) {
 
-  _getLayersFromLayerView: function() {
+                requestFullScreen.call(docEl);
 
-    if (this.options.layerView && this.options.layerView.model.get("type") == "layergroup") {
+                if (mapView) {
 
-      this.layers = _.map(this.options.layerView.layers, function(l, i) {
+                    mapView.options.map.set("scrollwheel", true);
 
-        var m = new cdb.core.Model(l);
+                }
 
-        m.set('order', i);
-        m.set('type', 'layergroup');
-        m.set('visible', l.visible);
-        m.set('layer_name', l.options.layer_name);
+            } else {
 
-        layerView = this._createLayer('LayerViewFromLayerGroup', {
-          model: m,
-          layerView: this.options.layerView,
-          layerIndex: i
-        });
+                cancelFullScreen.call(doc);
 
-        return layerView.model;
+            }
+        },
 
-      }, this);
+        _open: function () {
 
-    } else if (this.options.layerView && (this.options.layerView.model.get("type") == "torque")) {
+            var right = this.$el.find(".aside").width();
 
-      var layerView = this._createLayer('LayerView', { model: this.options.layerView.model });
+            this.$el.find(".cartodb-header").animate({right: right}, 200)
+            this.$el.find(".aside").animate({right: 0}, 200)
+            this.$el.find(".cartodb-attribution-button").animate({right: right + parseInt(this.$el.find(".cartodb-attribution-button").css("right"))}, 200)
+            this.$el.find(".cartodb-attribution").animate({right: right + parseInt(this.$el.find(".cartodb-attribution-button").css("right"))}, 200)
+            this._initScrollPane();
 
-      this.layers.push(layerView.model);
+        },
 
-    }
-  },
+        _close: function () {
 
-  _getLayer: function(layer) {
+            this.$el.find(".cartodb-header").animate({right: 0}, 200)
+            this.$el.find(".aside").animate({right: -this.$el.find(".aside").width()}, 200)
+            this.$el.find(".cartodb-attribution-button").animate({right: 20}, 200)
+            this.$el.find(".cartodb-attribution").animate({right: 20}, 200)
 
-    if (layer.get("type") == 'layergroup' || layer.get('type') === 'namedmap') {
+        },
 
-      var layerGroupView = this.mapView.getLayerByCid(layer.cid);
+        default_options: {
+            timeout: 0,
+            msg: ''
+        },
 
-      for (var i = 0 ; i < layerGroupView.getLayerCount(); ++i) {
+        _stopPropagation: function (ev) {
+            ev.stopPropagation();
+        },
 
-        var l = layerGroupView.getLayer(i);
-        var m = new cdb.core.Model(l);
+        doOnOrientationChange: function () {
 
-        m.set('order', i);
-        m.set('type', 'layergroup');
-        m.set('visible', l.visible);
-        m.set('layer_name', l.options.layer_name);
+            switch (window.orientation) {
+                case -90:
+                case 90:
+                    this.recalc("landscape");
+                    break;
+                default:
+                    this.recalc("portrait");
+                    break;
+            }
+        },
 
-        layerView = this._createLayer('LayerViewFromLayerGroup', {
-          model: m,
-          layerView: layerGroupView,
-          layerIndex: i
-        });
+        recalc: function (orientation) {
 
-        this.layers.push(layerView.model);
+            var height = $(".legends > div.cartodb-legend-stack").height();
 
-      }
+            if (this.$el.hasClass("open") && height < 100 && !this.$el.hasClass("torque")) {
 
-    } else if (layer.get("type") === "CartoDB" || layer.get('type') === 'torque') {
+                this.$el.css("height", height);
+                this.$el.find(".top-shadow").hide();
+                this.$el.find(".bottom-shadow").hide();
 
-      if (layer.get('type') === 'torque')  {
-        layer.on("change:visible", this._toggleSlider, this);
-      }
+            } else if (this.$el.hasClass("open") && height < 100 && this.$el.hasClass("legends") && this.$el.hasClass("torque")) {
 
-      this.layers.push(layer);
+                this.$el.css("height", height + $(".legends > div.torque").height());
+                this.$el.find(".top-shadow").hide();
+                this.$el.find(".bottom-shadow").hide();
 
-    }
+            }
 
-  },
+        },
 
-  _toggleSlider: function(m) {
+        _onChangeLayerCount: function () {
 
-    if (m.get("visible")) {
-      this.$el.addClass("with-torque");
-      this.slider.show();
-    } else {
-      this.$el.removeClass("with-torque");
-      this.slider.hide();
-    }
+            var layer_count = this.model.get("layer_count");
+            var msg = layer_count + " layer" + (layer_count != 1 ? "s" : "");
+            this.$el.find(".aside .layer-container > h3").html(msg);
 
-  },
+        },
 
-  _reInitScrollpane: function() {
-    this.$('.scrollpane').data('jsp') && this.$('.scrollpane').data('jsp').reinitialise();
-  },
+        _onChangeOpen: function () {
+            this.model.get("open") ? this._open() : this._close();
+        },
 
-  _bindOrientationChange: function() {
+        _createLayer: function (_class, opts) {
+            return new cdb.geo.ui[_class](opts);
+        },
 
-    var self = this;
+        _getLayers: function () {
 
-    var onOrientationChange = function() {
-      $(".cartodb-mobile .scrollpane").css("max-height", self.$el.height() - 30);
-      $('.cartodb-mobile .scrollpane').data('jsp') && $('.cartodb-mobile .scrollpane').data('jsp').reinitialise();
-    };
+            this.layers = [];
 
-    if (!window.addEventListener) {
-      window.attachEvent('orientationchange', onOrientationChange, this);
-    } else {
-      window.addEventListener('orientationchange', _.bind(onOrientationChange));
-    }
+            // we add the layers to the array depending on the method used
+            // to sent us the layers
+            if (this.options.layerView) {
+                this._getLayersFromLayerView();
+            } else {
+                _.each(this.map.layers.models, this._getLayer, this);
+            }
 
-  },
+        },
 
-  _renderOverlays: function() {
+        _getLayersFromLayerView: function () {
 
-    var hasSearchOverlay  = false;
-    var hasZoomOverlay    = false;
-    var hasLoaderOverlay  = false;
-    var hasLayerSelector  = false;
+            if (this.options.layerView && this.options.layerView.model.get("type") == "layergroup") {
 
-    _.each(this.overlays, function(overlay) {
+                this.layers = _.map(this.options.layerView.layers, function (l, i) {
 
-      if (!this.visibility_options.search && overlay.type == 'search') {
-        if (this.visibility_options.search !== false && this.visibility_options.search !== "false") {
-          this._addSearch();
-          hasSearchOverlay = true;
-        }
-      }
+                    var m = new cdb.core.Model(l);
 
-      if (!this.visibility_options.zoomControl && overlay.type === 'zoom') {
-        if (this.visibility_options.zoomControl !== "false") {
-          this._addZoom();
-          hasZoomOverlay = true;
-        }
-      }
+                    m.set('order', i);
+                    m.set('type', 'layergroup');
+                    m.set('visible', l.visible);
+                    m.set('layer_name', l.options.layer_name);
 
-      if (!this.visibility_options.loaderControl && overlay.type === 'loader') {
-        if (this.visibility_options.loaderControl !== "false") {
-          this._addLoader();
-          hasLoaderOverlay = true;
-        }
-      }
+                    layerView = this._createLayer('LayerViewFromLayerGroup', {
+                        model: m,
+                        layerView: this.options.layerView,
+                        layerIndex: i
+                    });
 
-      if (overlay.type == 'fullscreen' && !this.mobileEnabled) {
-        this._addFullscreen();
-      }
+                    return layerView.model;
 
-      if (overlay.type == 'header') {
-        this._addHeader(overlay);
-      }
+                }, this);
 
-      if (overlay.type == 'layer_selector') {
-        hasLayerSelector = true;
-      }
+            } else if (this.options.layerView && (this.options.layerView.model.get("type") == "torque")) {
 
-    }, this);
+                var layerView = this._createLayer('LayerView', {model: this.options.layerView.model});
 
-    var search_visibility = this.visibility_options.search === true        || this.visibility_options.search === "true";
-    var zoom_visibility   = this.visibility_options.zoomControl === true   || this.visibility_options.zoomControl === "true";
-    var loader_visibility = this.visibility_options.loaderControl === true || this.visibility_options.loaderControl === "true";
-    var layer_selector_visibility  = this.visibility_options.layer_selector;
+                this.layers.push(layerView.model);
 
-    if (!hasSearchOverlay  && search_visibility) this._addSearch();
-    if (!hasZoomOverlay    && zoom_visibility)   this._addZoom();
-    if (!hasLoaderOverlay  && loader_visibility) this._addLoader();
-    if (layer_selector_visibility || hasLayerSelector && layer_selector_visibility == undefined) this.hasLayerSelector = true;
+            }
+        },
 
-  },
+        _getLayer: function (layer) {
 
-  _initScrollPane: function() {
+            if (layer.get("type") == 'layergroup' || layer.get('type') === 'namedmap') {
 
-    if (this.$scrollpane) return;
+                var layerGroupView = this.mapView.getLayerByCid(layer.cid);
 
-    var self = this;
+                for (var i = 0; i < layerGroupView.getLayerCount(); ++i) {
 
-    var height       = this.$el.height();
-    this.$scrollpane = this.$el.find(".scrollpane");
+                    var l = layerGroupView.getLayer(i);
+                    var m = new cdb.core.Model(l);
 
-    setTimeout(function() {
-      self.$scrollpane.css("max-height", height - 60);
-      self.$scrollpane.jScrollPane({ showArrows: true });
-    }, 500);
+                    m.set('order', i);
+                    m.set('type', 'layergroup');
+                    m.set('visible', l.visible);
+                    m.set('layer_name', l.options.layer_name);
 
-  },
+                    layerView = this._createLayer('LayerViewFromLayerGroup', {
+                        model: m,
+                        layerView: layerGroupView,
+                        layerIndex: i
+                    });
 
-  _addZoom: function() {
+                    this.layers.push(layerView.model);
 
-    var template = cdb.core.Template.compile('\
+                }
+
+            } else if (layer.get("type") === "CartoDB" || layer.get('type') === 'torque') {
+
+                if (layer.get('type') === 'torque') {
+                    layer.on("change:visible", this._toggleSlider, this);
+                }
+
+                this.layers.push(layer);
+
+            }
+
+        },
+
+        _toggleSlider: function (m) {
+
+            if (m.get("visible")) {
+                this.$el.addClass("with-torque");
+                this.slider.show();
+            } else {
+                this.$el.removeClass("with-torque");
+                this.slider.hide();
+            }
+
+        },
+
+        _reInitScrollpane: function () {
+            this.$('.scrollpane').data('jsp') && this.$('.scrollpane').data('jsp').reinitialise();
+        },
+
+        _bindOrientationChange: function () {
+
+            var self = this;
+
+            var onOrientationChange = function () {
+                $(".cartodb-mobile .scrollpane").css("max-height", self.$el.height() - 30);
+                $('.cartodb-mobile .scrollpane').data('jsp') && $('.cartodb-mobile .scrollpane').data('jsp').reinitialise();
+            };
+
+            if (!window.addEventListener) {
+                window.attachEvent('orientationchange', onOrientationChange, this);
+            } else {
+                window.addEventListener('orientationchange', _.bind(onOrientationChange));
+            }
+
+        },
+
+        _renderOverlays: function () {
+
+            var hasSearchOverlay = false;
+            var hasZoomOverlay = false;
+            var hasLoaderOverlay = false;
+            var hasLayerSelector = false;
+
+            _.each(this.overlays, function (overlay) {
+
+                if (!this.visibility_options.search && overlay.type == 'search') {
+                    if (this.visibility_options.search !== false && this.visibility_options.search !== "false") {
+                        this._addSearch();
+                        hasSearchOverlay = true;
+                    }
+                }
+
+                if (!this.visibility_options.zoomControl && overlay.type === 'zoom') {
+                    if (this.visibility_options.zoomControl !== "false") {
+                        this._addZoom();
+                        hasZoomOverlay = true;
+                    }
+                }
+
+                if (!this.visibility_options.loaderControl && overlay.type === 'loader') {
+                    if (this.visibility_options.loaderControl !== "false") {
+                        this._addLoader();
+                        hasLoaderOverlay = true;
+                    }
+                }
+
+                if (overlay.type == 'fullscreen' && !this.mobileEnabled) {
+                    this._addFullscreen();
+                }
+
+                if (overlay.type == 'header') {
+                    this._addHeader(overlay);
+                }
+
+                if (overlay.type == 'layer_selector') {
+                    hasLayerSelector = true;
+                }
+
+            }, this);
+
+            var search_visibility = this.visibility_options.search === true || this.visibility_options.search === "true";
+            var zoom_visibility = this.visibility_options.zoomControl === true || this.visibility_options.zoomControl === "true";
+            var loader_visibility = this.visibility_options.loaderControl === true || this.visibility_options.loaderControl === "true";
+            var layer_selector_visibility = this.visibility_options.layer_selector;
+
+            if (!hasSearchOverlay && search_visibility) this._addSearch();
+            if (!hasZoomOverlay && zoom_visibility)   this._addZoom();
+            if (!hasLoaderOverlay && loader_visibility) this._addLoader();
+            if (layer_selector_visibility || hasLayerSelector && layer_selector_visibility == undefined) this.hasLayerSelector = true;
+
+        },
+
+        _initScrollPane: function () {
+
+            if (this.$scrollpane) return;
+
+            var self = this;
+
+            var height = this.$el.height();
+            this.$scrollpane = this.$el.find(".scrollpane");
+
+            setTimeout(function () {
+                self.$scrollpane.css("max-height", height - 60);
+                self.$scrollpane.jScrollPane({showArrows: true});
+            }, 500);
+
+        },
+
+        _addZoom: function () {
+
+            var template = cdb.core.Template.compile('\
     <a href="#zoom_in" class="zoom_in">+</a>\
     <a href="#zoom_out" class="zoom_out">-</a>\
     <div class="info"></div>', 'mustache'
-    );
+            );
 
-    var zoom = new cdb.geo.ui.Zoom({
-      model: this.options.map,
-      template: template
-    });
+            var zoom = new cdb.geo.ui.Zoom({
+                model: this.options.map,
+                template: template
+            });
 
-    this.$el.append(zoom.render().$el);
-    this.$el.addClass("with-zoom");
+            this.$el.append(zoom.render().$el);
+            this.$el.addClass("with-zoom");
 
-  },
+        },
 
-  _addLoader: function() {
+        _addLoader: function () {
 
-    var template = cdb.core.Template.compile('<div class="loader"></div>', 'mustache');
+            var template = cdb.core.Template.compile('<div class="loader"></div>', 'mustache');
 
-    this.loader = new cdb.geo.ui.TilesLoader({
-      template: template
-    });
+            this.loader = new cdb.geo.ui.TilesLoader({
+                template: template
+            });
 
-    this.$el.append(this.loader.render().$el);
-    this.$el.addClass("with-loader");
+            this.$el.append(this.loader.render().$el);
+            this.$el.addClass("with-loader");
 
-  },
+        },
 
-  _addFullscreen: function() {
+        _addFullscreen: function () {
 
-    if (this.visibility_options.fullscreen != false) {
-      this.hasFullscreen = true;
-      this.$el.addClass("with-fullscreen");
-    }
+            if (this.visibility_options.fullscreen != false) {
+                this.hasFullscreen = true;
+                this.$el.addClass("with-fullscreen");
+            }
 
-  },
+        },
 
-  _addSearch: function() {
+        _addSearch: function () {
 
-    this.hasSearch = true;
+            this.hasSearch = true;
 
-    var template = cdb.core.Template.compile('\
+            var template = cdb.core.Template.compile('\
       <form>\
       <span class="loader"></span>\
       <input type="text" class="text" placeholder="Search for places..." value="" />\
       <input type="submit" class="submit" value="" />\
       </form>\
       ', 'mustache'
-    );
+            );
 
-    var search = new cdb.geo.ui.Search({
-      template: template,
-      mapView: this.mapView,
-      model: this.mapView.map
+            var search = new cdb.geo.ui.Search({
+                template: template,
+                mapView: this.mapView,
+                model: this.mapView.map
+            });
+
+            this.$el.find(".aside").prepend(search.render().$el);
+            this.$el.find(".cartodb-searchbox").show();
+            this.$el.addClass("with-search");
+
+        },
+
+        _addHeader: function (overlay) {
+
+            this.hasHeader = true;
+
+            this.$header = this.$el.find(".cartodb-header");
+
+            var title_template = _.template('<div class="hgroup"><% if (show_title) { %><div class="title"><%= title %></div><% } %><% if (show_description) { %><div class="description"><%= description %><% } %></div></div>');
+
+            var extra = overlay.options.extra;
+            var has_header = false;
+            var show_title = false, show_description = false;
+
+            if (extra) {
+
+                if (this.visibility_options.title || this.visibility_options.title != false && extra.show_title) {
+                    has_header = true;
+                    show_title = true;
+                }
+
+                if (this.visibility_options.description || this.visibility_options.description != false && extra.show_description) {
+                    has_header = true;
+                    show_description = true;
+                }
+
+                if (this.slides) {
+                    has_header = true;
+                }
+
+                var $hgroup = title_template({
+                    title: cdb.core.sanitize.html(extra.title),
+                    show_title: show_title,
+                    description: cdb.core.sanitize.html(extra.description),
+                    show_description: show_description
+                });
+
+                if (has_header) {
+                    this.$el.addClass("with-header");
+                    this.$header.find(".content").append($hgroup);
+                }
+
+            }
+
+        },
+
+        _addAttributions: function () {
+
+            var attributions = "";
+
+            this.options.mapView.$el.find(".leaflet-control-attribution").hide(); // TODO: remove this from here
+
+            if (this.options.layerView) {
+
+                attributions = this.options.layerView.model.get("attribution");
+                this.$el.find(".cartodb-attribution").append(attributions);
+
+            } else if (this.options.map.get("attribution")) {
+
+                attributions = this.options.map.get("attribution");
+
+                _.each(attributions, function (attribution) {
+                    var $li = $("<li></li>");
+                    var $el = $li.html(attribution);
+                    this.$el.find(".cartodb-attribution").append($li);
+                }, this);
+
+            }
+
+            if (attributions) {
+                this.$el.find(".cartodb-attribution-button").fadeIn(250);
+            }
+
+        },
+
+        _renderLayers: function () {
+
+            var hasLegendOverlay = this.visibility_options.legends;
+
+            var legends = this.layers.filter(function (layer) {
+                return layer.get("legend") && layer.get("legend").type !== "none"
+            });
+
+            var hasLegends = legends.length ? true : false;
+
+            if (!this.hasLayerSelector && !hasLegendOverlay) return;
+            if (!this.hasLayerSelector && !hasLegends) return;
+            if (this.layers.length == 0) return;
+            if (this.layers.length == 1 && !hasLegends) return;
+
+            this.$el.addClass("with-layers");
+
+            this.model.set("layer_count", 0);
+
+            if (!this.hasSearch) this.$el.find(".aside .layer-container").prepend("<h3></h3>");
+
+            _.each(this.layers, this._renderLayer, this);
+
+        },
+
+        _renderLayer: function (data) {
+
+            var hasLegend = data.get("legend") && data.get("legend").type !== "" && data.get("legend").type !== "none";
+
+            // When the layer selector is disabled, don't show the layer if it doesn't have legends
+            if (!this.hasLayerSelector && !hasLegend) return;
+            if (!this.hasLayerSelector && !data.get("visible")) return;
+
+            var hide_toggle = (this.layers.length == 1 || !this.hasLayerSelector);
+
+            var show_legends = true;
+
+            if (this.visibility_options && this.visibility_options.legends !== undefined) {
+                show_legends = this.visibility_options.legends;
+            }
+
+            var layer = new cdb.geo.ui.MobileLayer({
+                model: data,
+                show_legends: show_legends,
+                show_title: !this.hasLayerSelector ? false : true,
+                hide_toggle: hide_toggle
+            });
+
+            this.$el.find(".aside .layers").append(layer.render().$el);
+
+            layer.bind("change_visibility", this._reInitScrollpane, this);
+
+            this.model.set("layer_count", this.model.get("layer_count") + 1);
+
+        },
+
+        _renderTorque: function () {
+
+            if (this.options.torqueLayer) {
+
+                this.hasTorque = true;
+
+                this.slider = new cdb.geo.ui.TimeSlider({
+                    type: "time_slider",
+                    layer: this.options.torqueLayer,
+                    map: this.options.map,
+                    pos_margin: 0,
+                    position: "none",
+                    width: "auto"
+                });
+
+                this.slider.bind("time_clicked", function () {
+                    this.slider.toggleTime();
+                }, this);
+
+                this.$el.find(".torque").append(this.slider.render().$el);
+
+                if (this.options.torqueLayer.hidden) this.slider.hide();
+                else this.$el.addClass("with-torque");
+            }
+
+        },
+
+        _renderSlidesController: function () {
+
+            if (this.slides) {
+
+                this.$el.addClass("with-slides");
+
+                this.slidesController = new cdb.geo.ui.SlidesController({
+                    show_counter: true,
+                    transitions: this.options.transitions,
+                    visualization: this.options.visualization,
+                    slides: this.slides
+                });
+
+                this.$el.append(this.slidesController.render().$el);
+
+            }
+
+        },
+
+        render: function () {
+
+            this._bindOrientationChange();
+
+            this.$el.html(this.template(this.options));
+
+            this.$header = this.$el.find(".cartodb-header");
+            this.$header.show();
+
+            this._renderOverlays();
+
+            this._renderSlidesController();
+
+            this._addAttributions();
+
+            this._getLayers();
+            this._renderLayers();
+            this._renderTorque();
+
+            return this;
+
+        }
+
     });
-
-    this.$el.find(".aside").prepend(search.render().$el);
-    this.$el.find(".cartodb-searchbox").show();
-    this.$el.addClass("with-search");
-
-  },
-
-  _addHeader: function(overlay) {
-
-    this.hasHeader = true;
-
-    this.$header = this.$el.find(".cartodb-header");
-
-    var title_template = _.template('<div class="hgroup"><% if (show_title) { %><div class="title"><%= title %></div><% } %><% if (show_description) { %><div class="description"><%= description %><% } %></div></div>');
-
-    var extra = overlay.options.extra;
-    var has_header = false;
-    var show_title = false, show_description = false;
-
-    if (extra) {
-
-      if (this.visibility_options.title || this.visibility_options.title != false && extra.show_title)      {
-        has_header = true;
-        show_title = true;
-      }
-
-      if (this.visibility_options.description || this.visibility_options.description != false && extra.show_description) {
-        has_header = true;
-        show_description = true;
-      }
-
-      if (this.slides) {
-        has_header = true;
-      }
-
-      var $hgroup = title_template({
-        title: cdb.core.sanitize.html(extra.title),
-        show_title:show_title,
-        description: cdb.core.sanitize.html(extra.description),
-        show_description: show_description
-      });
-
-      if (has_header) {
-        this.$el.addClass("with-header");
-        this.$header.find(".content").append($hgroup);
-      }
-
-    }
-
-  },
-
-  _addAttributions: function() {
-
-    var attributions = "";
-
-    this.options.mapView.$el.find(".leaflet-control-attribution").hide(); // TODO: remove this from here
-
-    if (this.options.layerView) {
-
-      attributions = this.options.layerView.model.get("attribution");
-      this.$el.find(".cartodb-attribution").append(attributions);
-
-    } else if (this.options.map.get("attribution")) {
-
-      attributions = this.options.map.get("attribution");
-
-      _.each(attributions, function(attribution) {
-        var $li = $("<li></li>");
-        var $el = $li.html(attribution);
-        this.$el.find(".cartodb-attribution").append($li);
-      }, this);
-
-    }
-
-    if (attributions) {
-      this.$el.find(".cartodb-attribution-button").fadeIn(250);
-    }
-
-  },
-
-  _renderLayers: function() {
-
-    var hasLegendOverlay = this.visibility_options.legends;
-
-    var legends = this.layers.filter(function(layer) {
-      return layer.get("legend") && layer.get("legend").type !== "none"
-    });
-
-    var hasLegends = legends.length ? true : false;
-
-    if (!this.hasLayerSelector && !hasLegendOverlay) return;
-    if (!this.hasLayerSelector && !hasLegends) return;
-    if (this.layers.length == 0) return;
-    if (this.layers.length == 1 && !hasLegends) return;
-
-    this.$el.addClass("with-layers");
-
-    this.model.set("layer_count", 0);
-
-    if (!this.hasSearch) this.$el.find(".aside .layer-container").prepend("<h3></h3>");
-
-    _.each(this.layers, this._renderLayer, this);
-
-  },
-
-  _renderLayer: function(data) {
-
-    var hasLegend = data.get("legend") && data.get("legend").type !== "" && data.get("legend").type !== "none";
-
-    // When the layer selector is disabled, don't show the layer if it doesn't have legends
-    if (!this.hasLayerSelector && !hasLegend) return;
-    if (!this.hasLayerSelector && !data.get("visible")) return;
-
-    var hide_toggle = (this.layers.length == 1 || !this.hasLayerSelector);
-
-    var show_legends = true;
-
-    if (this.visibility_options && this.visibility_options.legends !== undefined) {
-      show_legends = this.visibility_options.legends;
-    }
-
-    var layer = new cdb.geo.ui.MobileLayer({
-      model: data,
-      show_legends: show_legends,
-      show_title: !this.hasLayerSelector ? false : true,
-      hide_toggle: hide_toggle
-    });
-
-    this.$el.find(".aside .layers").append(layer.render().$el);
-
-    layer.bind("change_visibility", this._reInitScrollpane, this);
-
-    this.model.set("layer_count", this.model.get("layer_count") + 1);
-
-  },
-
-  _renderTorque: function() {
-
-    if (this.options.torqueLayer) {
-
-      this.hasTorque = true;
-
-      this.slider = new cdb.geo.ui.TimeSlider({type: "time_slider", layer: this.options.torqueLayer, map: this.options.map, pos_margin: 0, position: "none" , width: "auto" });
-
-      this.slider.bind("time_clicked", function() {
-        this.slider.toggleTime();
-      }, this);
-
-      this.$el.find(".torque").append(this.slider.render().$el);
-
-      if (this.options.torqueLayer.hidden) this.slider.hide();
-      else this.$el.addClass("with-torque");
-    }
-
-  },
-
-  _renderSlidesController: function() {
-
-    if (this.slides) {
-
-      this.$el.addClass("with-slides");
-
-      this.slidesController = new cdb.geo.ui.SlidesController({
-        show_counter: true,
-        transitions: this.options.transitions,
-        visualization: this.options.visualization,
-        slides: this.slides
-      });
-
-      this.$el.append(this.slidesController.render().$el);
-
-    }
-
-  },
-
-  render: function() {
-
-    this._bindOrientationChange();
-
-    this.$el.html(this.template(this.options));
-
-    this.$header = this.$el.find(".cartodb-header");
-    this.$header.show();
-
-    this._renderOverlays();
-
-    this._renderSlidesController();
-
-    this._addAttributions();
-
-    this._getLayers();
-    this._renderLayers();
-    this._renderTorque();
-
-    return this;
-
-  }
-
-});
+}

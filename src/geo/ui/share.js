@@ -1,47 +1,52 @@
-cdb.geo.ui.Share = cdb.core.View.extend({
+var _ = require('underscore')
+var $ = require('jquery')
 
-  className: "cartodb-share",
+module.exports = function (cdb) {
+    cdb.geo.ui.Share = cdb.core.View.extend({
 
-  events: {
-    "click a": "_onClick"
-  },
-  default_options: { },
+        className: "cartodb-share",
 
-  initialize: function() {
+        events: {
+            "click a": "_onClick"
+        },
+        default_options: {},
 
-    _.bindAll(this, "_onClick");
+        initialize: function () {
 
-    _.defaults(this.options, this.default_options);
+            _.bindAll(this, "_onClick");
 
-    this.template = this.options.template;
+            _.defaults(this.options, this.default_options);
 
-  },
+            this.template = this.options.template;
 
-  _applyStyle: function() { },
+        },
 
-  _onClick: function(e) {
+        _applyStyle: function () {
+        },
 
-    e.preventDefault();
-    e.stopPropagation();
+        _onClick: function (e) {
 
-    this.dialog.show();
+            e.preventDefault();
+            e.stopPropagation();
 
-  },
+            this.dialog.show();
 
-  createDialog: function() {
+        },
 
-    var data = this.options;
-    data.template = "";
+        createDialog: function () {
 
-    // Add the complete url for facebook and twitter
-    if (location.href) {
-      data.share_url = encodeURIComponent(location.href);
-    } else {
-      data.share_url = data.url;
-    }
+            var data = this.options;
+            data.template = "";
 
-    var template = cdb.core.Template.compile(
-      data.template || '\
+            // Add the complete url for facebook and twitter
+            if (location.href) {
+                data.share_url = encodeURIComponent(location.href);
+            } else {
+                data.share_url = data.url;
+            }
+
+            var template = cdb.core.Template.compile(
+                data.template || '\
       <div class="mamufas">\
       <div class="block modal {{modal_type}}">\
       <a href="#close" class="close">x</a>\
@@ -64,43 +69,44 @@ cdb.geo.ui.Share = cdb.core.View.extend({
       </div>\
       </div>\
       ',
-      data.templateType || 'mustache'
-    );
+                data.templateType || 'mustache'
+            );
 
-    var url = location.href;
+            var url = location.href;
 
-    url = url.replace("public_map", "embed_map");
+            url = url.replace("public_map", "embed_map");
 
-    var public_map_url = url.replace("embed_map", "public_map"); // TODO: get real URL
+            var public_map_url = url.replace("embed_map", "public_map"); // TODO: get real URL
 
-    var code = "<iframe width='100%' height='520' frameborder='0' src='" + url + "' allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>";
+            var code = "<iframe width='100%' height='520' frameborder='0' src='" + url + "' allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>";
 
-    this.dialog = new cdb.ui.common.ShareDialog({
-      title: data.map.get("title"),
-      description: data.map.get("description"),
-      model: this.options.vis.map,
-      code: code,
-      url: data.url,
-      public_map_url: public_map_url,
-      share_url: data.share_url,
-      template: template,
-      target: $(".cartodb-share a"),
-      size: $(document).width() > 400 ? "" : "small",
-      width: $(document).width() > 400 ? 430 : 216
+            this.dialog = new cdb.ui.common.ShareDialog({
+                title: data.map.get("title"),
+                description: data.map.get("description"),
+                model: this.options.vis.map,
+                code: code,
+                url: data.url,
+                public_map_url: public_map_url,
+                share_url: data.share_url,
+                template: template,
+                target: $(".cartodb-share a"),
+                size: $(document).width() > 400 ? "" : "small",
+                width: $(document).width() > 400 ? 430 : 216
+            });
+
+            $(".cartodb-map-wrapper").append(this.dialog.render().$el);
+
+            this.addView(this.dialog);
+
+        },
+
+        render: function () {
+
+            this.$el.html(this.template(_.extend(this.model.attributes)));
+
+            return this;
+
+        }
+
     });
-
-    $(".cartodb-map-wrapper").append(this.dialog.render().$el);
-
-    this.addView(this.dialog);
-
-  },
-
-  render: function() {
-
-    this.$el.html(this.template(_.extend(this.model.attributes)));
-
-    return this;
-
-  }
-
-});
+}

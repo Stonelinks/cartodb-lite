@@ -1,35 +1,37 @@
-(function() {
+var _ = require('underscore')
 
-  cartodb.createVis = function(el, vizjson, options, callback) {
+module.exports = function (cdb) {
 
-    if (!el) {
-      throw new TypeError("a DOM element should be provided");
-    }
+        cartodb.createVis = function (el, vizjson, options, callback) {
 
-    var
-    args = arguments,
-    fn   = args[args.length -1];
+            if (!el) {
+                throw new TypeError("a DOM element should be provided");
+            }
 
-    if (_.isFunction(fn)) {
-      callback = fn;
-    }
+            var
+                args = arguments,
+                fn = args[args.length - 1];
 
-    el = (typeof el === 'string' ? document.getElementById(el) : el);
+            if (_.isFunction(fn)) {
+                callback = fn;
+            }
 
-    var vis = new cartodb.vis.Vis({ el: el });
+            el = (typeof el === 'string' ? document.getElementById(el) : el);
 
-    if (vizjson) {
+            var vis = new cartodb.vis.Vis({el: el});
 
-      vis.load(vizjson, options);
+            if (vizjson) {
 
-      if (callback) {
-        vis.done(callback);
-      }
+                vis.load(vizjson, options);
 
-    }
+                if (callback) {
+                    vis.done(callback);
+                }
 
-    return vis;
+            }
 
-  };
+            return vis;
 
-})();
+        };
+
+}

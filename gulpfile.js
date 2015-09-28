@@ -6,6 +6,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
+var shim = require('browserify-shim');
 
 var path = {
     style: './style/**/*.scss',
@@ -22,6 +23,8 @@ gulp.task('js', function() {
     bundler.require('./src/cartodb-lite.js', {
         expose: 'cartodb'
     });
+    bundler.transform(shim);
+
     // needed for tests to work
     //bundler.require('backbone.marionette');
     //bundler.require('jquery');

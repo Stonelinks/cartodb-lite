@@ -24,14 +24,14 @@
       throw new Error("username should be passed");
     }
 
-    options.layer_definition = LayerDefinition.layerDefFromSubLayers(options.sublayers);
+    options.layer_definition = cdb.geo.LayerDefinition.layerDefFromSubLayers(options.sublayers);
 
     options.ajax = reqwest.compat;
 
-    LayerDefinition.call(this, options.layer_definition, options);
+      cdb.geo.LayerDefinition.call(this, options.layer_definition, options);
   };
 
-  _.extend(Tiles.prototype, LayerDefinition.prototype);
+  _.extend(Tiles.prototype, cdb.geo.LayerDefinition.prototype);
 
 
   root.cartodb.Tiles = Tiles;

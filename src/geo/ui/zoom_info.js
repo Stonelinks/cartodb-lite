@@ -1,24 +1,26 @@
-/**
- * View to know which is the map zoom.
- *
- * Usage:
- *
- * var zoomInfo = new cdb.geo.ui.ZoomInfo({ model: map });
- * mapWrapper.$el.append(zoomInfo.render().$el);
- *
- */
+module.exports = function (cdb) {
+    /**
+     * View to know which is the map zoom.
+     *
+     * Usage:
+     *
+     * var zoomInfo = new cdb.geo.ui.ZoomInfo({ model: map });
+     * mapWrapper.$el.append(zoomInfo.render().$el);
+     *
+     */
 
 
-cdb.geo.ui.ZoomInfo = cdb.core.View.extend({
+    cdb.geo.ui.ZoomInfo = cdb.core.View.extend({
 
-  className: "cartodb-zoom-info",
+        className: "cartodb-zoom-info",
 
-  initialize: function() {
-    this.model.bind("change:zoom", this.render, this);
-  },
+        initialize: function () {
+            this.model.bind("change:zoom", this.render, this);
+        },
 
-  render: function() {
-    this.$el.html(this.model.get("zoom"));
-    return this;
-  }
-});
+        render: function () {
+            this.$el.html(this.model.get("zoom"));
+            return this;
+        }
+    });
+}

@@ -1,61 +1,65 @@
+var _ = require('underscore')
 
-cdb.geo.ui.Header = cdb.core.View.extend({
+module.exports = function (cdb) {
 
-  className: 'cartodb-header',
+    cdb.geo.ui.Header = cdb.core.View.extend({
 
-  initialize: function() {
-    var extra = this.model.get("extra");
+        className: 'cartodb-header',
 
-    this.model.set({
-      title:            extra.title,
-      description:      extra.description,
-      show_title:       extra.show_title,
-      show_description: extra.show_description
-    }, { silent: true });
-  },
+        initialize: function () {
+            var extra = this.model.get("extra");
 
-  show: function() {
-    //var display        = this.model.get("display");
-    var hasTitle       = this.model.get("title") && this.model.get("show_title");
-    var hasDescription = this.model.get("description") && this.model.get("show_description");
+            this.model.set({
+                title: extra.title,
+                description: extra.description,
+                show_title: extra.show_title,
+                show_description: extra.show_description
+            }, {silent: true});
+        },
 
-    if (hasTitle || hasDescription) {
-      this.$el.show();
-      if (hasTitle)       this.$el.find(".content div.title").show();
-      if (hasDescription) this.$el.find(".content div.description").show();
-    }
-  },
+        show: function () {
+            //var display        = this.model.get("display");
+            var hasTitle = this.model.get("title") && this.model.get("show_title");
+            var hasDescription = this.model.get("description") && this.model.get("show_description");
 
-  // Add target attribute to all links
-  _setLinksTarget: function(str) {
-    if (!str) return str;
-    var reg = new RegExp(/<(a)([^>]+)>/g);
-    return str.replace(reg, "<$1 target=\"_blank\"$2>");
-  },
+            if (hasTitle || hasDescription) {
+                this.$el.show();
+                if (hasTitle)       this.$el.find(".content div.title").show();
+                if (hasDescription) this.$el.find(".content div.description").show();
+            }
+        },
 
-  render: function() {
-    var data = _.clone(this.model.attributes);
-    data.title = cdb.core.sanitize.html(data.title);
-    data.description = this._setLinksTarget(cdb.core.sanitize.html(data.description));
-    this.$el.html(this.options.template(data));
+        // Add target attribute to all links
+        _setLinksTarget: function (str) {
+            if (!str) return str;
+            var reg = new RegExp(/<(a)([^>]+)>/g);
+            return str.replace(reg, "<$1 target=\"_blank\"$2>");
+        },
 
-    if (this.options.slides) {
-      this.slides_controller = new cdb.geo.ui.SlidesController({
-        transitions: this.options.transitions,
-        slides: this.options.slides
-      });
+        render: function () {
+            var data = _.clone(this.model.attributes);
+            data.title = cdb.core.sanitize.html(data.title);
+            data.description = this._setLinksTarget(cdb.core.sanitize.html(data.description));
+            this.$el.html(this.options.template(data));
 
-      this.$el.append(this.slides_controller.render().$el);
-    }
+            if (this.options.slides) {
+                this.slides_controller = new cdb.geo.ui.SlidesController({
+                    transitions: this.options.transitions,
+                    slides: this.options.slides
+                });
 
-    if (this.model.get("show_title") || this.model.get("show_description")) {
-      this.show();
-    } else {
-      this.hide();
-    }
+                this.$el.append(this.slides_controller.render().$el);
+            }
 
-    return this;
+            if (this.model.get("show_title") || this.model.get("show_description")) {
+                this.show();
+            } else {
+                this.hide();
+            }
 
-  }
+            return this;
 
-});
+        }
+
+    });
+}

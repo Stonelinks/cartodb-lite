@@ -1,61 +1,66 @@
+var Backbone = require('backbone')
+var _ = require('underscore')
 
-(function() {
-  /**
-  * base layer for all leaflet layers
-  */
-  var LeafLetLayerView = function(layerModel, leafletLayer, leafletMap) {
-    this.leafletLayer = leafletLayer;
-    this.leafletMap = leafletMap;
-    this.model = layerModel;
+module.exports = function (cdb) {
 
-    this.setModel(layerModel);
+    (function () {
+        /**
+         * base layer for all leaflet layers
+         */
+        var LeafLetLayerView = function (layerModel, leafletLayer, leafletMap) {
+            this.leafletLayer = leafletLayer;
+            this.leafletMap = leafletMap;
+            this.model = layerModel;
 
-    this.type = layerModel.get('type') || layerModel.get('kind');
-    this.type = this.type.toLowerCase();
-  };
+            this.setModel(layerModel);
 
-  _.extend(LeafLetLayerView.prototype, Backbone.Events);
-  _.extend(LeafLetLayerView.prototype, {
+            this.type = layerModel.get('type') || layerModel.get('kind');
+            this.type = this.type.toLowerCase();
+        };
 
-    setModel: function(model) {
-      if (this.model) {
-        this.model.unbind('change', this._modelUpdated, this);
-      }
-      this.model = model;
-      this.model.bind('change', this._modelUpdated, this);
-    },
+        _.extend(LeafLetLayerView.prototype, Backbone.Events);
+        _.extend(LeafLetLayerView.prototype, {
 
-    /**
-    * remove layer from the map and unbind events
-    */
-    remove: function() {
-      this.leafletMap.removeLayer(this.leafletLayer);
-      this.trigger('remove', this);
-      this.model.unbind(null, null, this);
-      this.unbind();
-    },
-    /*
+            setModel: function (model) {
+                if (this.model) {
+                    this.model.unbind('change', this._modelUpdated, this);
+                }
+                this.model = model;
+                this.model.bind('change', this._modelUpdated, this);
+            },
 
-    show: function() {
-      this.leafletLayer.setOpacity(1.0);
-    },
+            /**
+             * remove layer from the map and unbind events
+             */
+            remove: function () {
+                this.leafletMap.removeLayer(this.leafletLayer);
+                this.trigger('remove', this);
+                this.model.unbind(null, null, this);
+                this.unbind();
+            },
+            /*
 
-    hide: function() {
-      this.leafletLayer.setOpacity(0.0);
-    },
-    */
+             show: function() {
+             this.leafletLayer.setOpacity(1.0);
+             },
 
-    /**
-     * reload the tiles
-     */
-    reload: function() {
-      this.leafletLayer.redraw();
-    }
+             hide: function() {
+             this.leafletLayer.setOpacity(0.0);
+             },
+             */
 
-  });
+            /**
+             * reload the tiles
+             */
+            reload: function () {
+                this.leafletLayer.redraw();
+            }
+
+        });
 
 
-  cdb.geo.LeafLetLayerView = LeafLetLayerView;
+        cdb.geo.LeafLetLayerView = LeafLetLayerView;
 
 
-})();
+    })();
+}
